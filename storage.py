@@ -112,24 +112,62 @@ def upsert_ruleset(rules: Dict[str, Any]) -> int:
 
 def register_scenario(
     name: str,
-    description: str,
-    source_file: str,
-    rule_id: int,
-    zones: List[Dict[str, Any]] | None,
 ) -> int:
     """
-    Insert a scenario and its optional speed zones; return the new scenario_id.
+    Insert a new scenario and its speed zones, returning scenario.scenario_id.
 
-    Tables:
-      - scenario(name, description, source_file, ruleset_id)
-      - speed_zone(start_mile, end_mile, speed_limit, scenario_id)
-
-    TODO(student):
-      1) INSERT into scenario(...); capture lastrowid as sid.
-      2) If `zones` is provided, INSERT each zone row bound to sid.
-      3) Commit and return sid.
+    Args:
+        name: Name of the scenario
+        source_file: Path to the source file for this scenario
+        rule_id: ID of the ruleset to associate with this scenario
+        description: Optional description of the scenario (default: "")
+        speed_zones: Optional list of speed zone dictionaries, each with:
+                    - 'start_mile': Starting mile marker (float)
+                    - 'end_mile': Ending mile marker (float)
+                    - 'speed_limit': Speed limit in this zone (float)
+                    
+    Returns:
+        int: The scenario_id of the newly created scenario
+        
+    Raises:
+        sqlite3.Error: If there's a database error
     """
-    raise NotImplementedError("TODO: implement register_scenario()")
+    if speed_zones is None:
+        speed_zones = []
+    
+    conn = _conn()
+    
+    try:
+        # Insert the scenario
+        cursor = conn.execute(
+            """
+            INSERT INTO scenario (name, description, source_file, rule_id)
+            VALUES (?, ?, ?, ?)
+            """,
+            (name, description, source_file, rule_id)
+        )
+        scenario_id = cursor.lastrowid
+        
+        # Insert speed zones if any
+        if speed_zones:
+            zone_data = [
+                (scenario_id, zone['start_mile'], zone['end_mile'], zone['speed_limit'])
+                for zone in speed_zones
+            ]
+            conn.executemany(
+                """
+                INSERT INTO speed_zone (scenario_id, start_mile, end_mile, speed_limit)
+                VALUES (?, ?, ?, ?)
+                """,
+                zone_data
+            )
+        
+        conn.commit()
+        return scenario_id
+        
+    except sqlite3.Error as e:
+        conn.rollback()
+        raise e
 
 
 def save_report(scenario_id: int, violations: List[Dict[str, Any]]) -> None:
