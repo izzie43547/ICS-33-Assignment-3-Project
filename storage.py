@@ -172,35 +172,101 @@ def register_scenario(
 
 def save_report(scenario_id: int, violations: List[Dict[str, Any]]) -> None:
     """
-    Persist violations for a given scenario.
+    Save a list of violations for a given scenario.
 
-    Table:
-      - violation(scenario_id, tstamp, type, details)
-
-    Input violation dicts are expected to have keys: 'time', 'type', 'details'.
-
-    TODO(student):
-      1) INSERT each violation row using parameterized queries.
-      2) Commit once at the end.
+    Args:
+        scenario_id: ID of the scenario these violations belong to
+        violations: List of violation dictionaries, each with:
+                   - 'type': Type of violation (str)
+                   - 'time': Timestamp in 'MM:SS.s' format (str)
+                   - 'details': Description of the violation (str)
+                   
+    Raises:
+        ValueError: If scenario_id is invalid or violation format is incorrect
+        sqlite3.Error: If there's a database error
     """
-    raise NotImplementedError("TODO: implement save_report()")
+    if not violations:
+        return  # Nothing to save
+    
+    # Validate input format
+    required_keys = {'type', 'time', 'details'}
+    for i, violation in enumerate(violations):
+        missing_keys = required_keys - violation.keys()
+        if missing_keys:
+            raise ValueError(f"Violation at index {i} missing keys: {', '.join(missing_keys)}")
+    
+    conn = _conn()
+    
+    try:
+        # Verify the scenario exists
+        cursor = conn.execute(
+            "SELECT 1 FROM scenario WHERE scenario_id = ?",
+            (scenario_id,)
+        )
+        if not cursor.fetchone():
+            raise ValueError(f"Scenario with ID {scenario_id} does not exist")
+        
+        # Prepare violation data
+        violation_data = [
+            (scenario_id, viol['time'], viol['type'], viol['details'])
+            for viol in violations
+        ]
+        
+        # Insert all violations in a single transaction
+        conn.executemany(
+            """
+            INSERT INTO violation (scenario_id, tstamp, type, details)
+            VALUES (?, ?, ?, ?)
+            """,
+            violation_data
+        )
+        
+        conn.commit()
+        
+    except sqlite3.Error as e:
+        conn.rollback()
+        raise e
 
 
 def get_violation_counts(scenario_id: int) -> Dict[str, int]:
     """
-    Return {type: count} for a scenario.
+    Return a dictionary mapping violation types to their counts for the given scenario.
 
-    SQL:
-      SELECT type, COUNT(*)
-      FROM violation
-      WHERE scenario_id=?
-      GROUP BY type
-
-    TODO(student):
-      1) Run the SELECT above.
-      2) Build and return a dict from fetched rows.
+    Args:
+        scenario_id: ID of the scenario to get violation counts for
+        
+    Returns:
+        Dictionary where keys are violation types (str) and values are counts (int).
+        Example: {"SPEEDING": 2, "TAILGATING": 1}
+        
+    Raises:
+        ValueError: If scenario_id is invalid
+        sqlite3.Error: If there's a database error
     """
-    raise NotImplementedError("TODO: implement get_violation_counts()")
+    conn = _conn()
+    
+    # Verify the scenario exists
+    cursor = conn.execute(
+        "SELECT 1 FROM scenario WHERE scenario_id = ?",
+        (scenario_id,)
+    )
+    if not cursor.fetchone():
+        raise ValueError(f"Scenario with ID {scenario_id} does not exist")
+    
+    # Get violation counts by type
+    cursor = conn.execute(
+        """
+        SELECT type, COUNT(*) as count 
+        FROM violation 
+        WHERE scenario_id = ? 
+        GROUP BY type
+        ORDER BY count DESC
+        """,
+        (scenario_id,)
+    )
+    
+    # Convert to dictionary
+    return {row['type']: row['count'] for row in cursor}
 
 
 def get_violations_by_type(scenario_id: int, vtype: str) -> List[Dict[str, Any]]:
