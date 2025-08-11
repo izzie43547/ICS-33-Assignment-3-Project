@@ -1,6 +1,8 @@
 from __future__ import annotations
 import sqlite3
-from typing import Dict, List, Any, Optional
+import os
+from pathlib import Path
+from typing import Dict, List, Any, Optional, Tuple
 
 _DB: Optional[sqlite3.Connection] = None
 
@@ -15,13 +17,36 @@ def init_db(path: str) -> None:
     """
     Open (or create) the SQLite DB at `path`, enable foreign keys, and apply schema.sql.
 
-    TODO(student):
-      1) Set the global _DB via sqlite3.connect(path).
-      2) Execute 'PRAGMA foreign_keys = ON;'.
-      3) Read 'schema.sql' and exec the script.
-      4) Commit.
+    Args:
+        path: Path to the SQLite database file
+        
+    Raises:
+        sqlite3.Error: If there's an error initializing the database
+        FileNotFoundError: If schema.sql is not found
     """
-    raise NotImplementedError("TODO: implement init_db()")
+    global _DB
+    
+    # Create directory if it doesn't exist
+    db_path = Path(path)
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Connect to the database
+    _DB = sqlite3.connect(db_path)
+    _DB.row_factory = sqlite3.Row  # Enable dictionary-style access to rows
+    
+    # Enable foreign key constraints
+    _DB.execute('PRAGMA foreign_keys = ON;')
+    
+    # Read and execute schema.sql
+    schema_path = Path(__file__).parent / 'schema.sql'
+    if not schema_path.exists():
+        raise FileNotFoundError(f"Schema file not found: {schema_path}")
+    
+    with open(schema_path, 'r') as f:
+        schema_sql = f.read()
+    
+    _DB.executescript(schema_sql)
+    _DB.commit()
 
 
 def upsert_ruleset(rules: Dict[str, Any]) -> int:
