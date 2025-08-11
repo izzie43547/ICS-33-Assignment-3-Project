@@ -1,0 +1,135 @@
+from __future__ import annotations
+import sqlite3
+from typing import Dict, List, Any, Optional
+
+_DB: Optional[sqlite3.Connection] = None
+
+
+def _conn() -> sqlite3.Connection:
+    """Internal: return the initialized DB connection."""
+    assert _DB is not None, "DB not initialized"
+    return _DB
+
+
+def init_db(path: str) -> None:
+    """
+    Open (or create) the SQLite DB at `path`, enable foreign keys, and apply schema.sql.
+
+    TODO(student):
+      1) Set the global _DB via sqlite3.connect(path).
+      2) Execute 'PRAGMA foreign_keys = ON;'.
+      3) Read 'schema.sql' and exec the script.
+      4) Commit.
+    """
+    raise NotImplementedError("TODO: implement init_db()")
+
+
+def upsert_ruleset(rules: Dict[str, Any]) -> int:
+    """
+    Return the existing ruleset.rule_id if a row with identical values exists,
+    otherwise insert a new row and return its rule_id.
+
+    Schema fields used in `ruleset`:
+      (max_speed, min_follow_distance, stop_sign_wait)
+
+    TODO(student):
+      1) SELECT rule_id ... WHERE max_speed=? AND min_follow_distance=? AND stop_sign_wait=?.
+      2) If found, return the id.
+      3) Else INSERT and commit, then return lastrowid.
+    """
+    raise NotImplementedError("TODO: implement upsert_ruleset()")
+
+
+def register_scenario(
+    name: str,
+    description: str,
+    source_file: str,
+    rule_id: int,
+    zones: List[Dict[str, Any]] | None,
+) -> int:
+    """
+    Insert a scenario and its optional speed zones; return the new scenario_id.
+
+    Tables:
+      - scenario(name, description, source_file, ruleset_id)
+      - speed_zone(start_mile, end_mile, speed_limit, scenario_id)
+
+    TODO(student):
+      1) INSERT into scenario(...); capture lastrowid as sid.
+      2) If `zones` is provided, INSERT each zone row bound to sid.
+      3) Commit and return sid.
+    """
+    raise NotImplementedError("TODO: implement register_scenario()")
+
+
+def save_report(scenario_id: int, violations: List[Dict[str, Any]]) -> None:
+    """
+    Persist violations for a given scenario.
+
+    Table:
+      - violation(scenario_id, tstamp, type, details)
+
+    Input violation dicts are expected to have keys: 'time', 'type', 'details'.
+
+    TODO(student):
+      1) INSERT each violation row using parameterized queries.
+      2) Commit once at the end.
+    """
+    raise NotImplementedError("TODO: implement save_report()")
+
+
+def get_violation_counts(scenario_id: int) -> Dict[str, int]:
+    """
+    Return {type: count} for a scenario.
+
+    SQL:
+      SELECT type, COUNT(*)
+      FROM violation
+      WHERE scenario_id=?
+      GROUP BY type
+
+    TODO(student):
+      1) Run the SELECT above.
+      2) Build and return a dict from fetched rows.
+    """
+    raise NotImplementedError("TODO: implement get_violation_counts()")
+
+
+def get_violations_by_type(scenario_id: int, vtype: str) -> List[Dict[str, Any]]:
+    """
+    Return violations of a given type for a scenario, ordered by timestamp.
+
+    SQL:
+      SELECT tstamp, type, details
+      FROM violation
+      WHERE scenario_id=? AND type=?
+      ORDER BY tstamp
+
+    Output shape per row:
+      {"time": <str>, "type": <str>, "details": <str>}
+
+    TODO(student):
+      1) Execute the SELECT and fetch all.
+      2) Convert rows to dicts with keys 'time', 'type', 'details'.
+    """
+    raise NotImplementedError("TODO: implement get_violations_by_type()")
+
+
+def get_recent_violations(limit: int = 20) -> List[Dict[str, Any]]:
+    """
+    Return the most recent `limit` violations across all scenarios (newest first).
+
+    SQL:
+      SELECT scenario_id, tstamp, type, details
+      FROM violation
+      ORDER BY violation_id DESC
+      LIMIT ?
+
+    Output shape per row:
+      {"scenario_id": <int>, "time": <str>, "type": <str>, "details": <str>}
+
+    TODO(student):
+      1) Execute the SELECT with LIMIT ?.
+      2) Convert rows to dicts with keys shown above.
+    """
+    raise NotImplementedError("TODO: implement get_recent_violations()")
