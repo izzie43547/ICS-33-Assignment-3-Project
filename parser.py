@@ -17,16 +17,38 @@ def load_scenario(path: Path) -> Dict[str, Any]:
     Optional:
       - "speed_zones" (list), default to [] if missing.
 
-    TODO(student):
-      1) Open `path` and json.load() the dict.
-      2) Validate presence/types of required keys (raise ValueError on problems).
-      3) Ensure data.setdefault('speed_zones', []).
-      4) Return the validated scenario dict.
+    Returns:
+        Dict containing the loaded and validated scenario data.
+        
+    Raises:
+        FileNotFoundError: If the specified path doesn't exist.
+        json.JSONDecodeError: If the file contains invalid JSON.
+        ValueError: If required fields are missing or have incorrect types.
     """
-    # Example ValueError messages to match tests:
-    #   ValueError("scenario missing 'road_rules'")
-    #   ValueError("road_rules missing key: max_speed")
-    raise NotImplementedError("TODO: implement load_scenario()")
+    # Load the JSON file
+    try:
+        with open(path, 'r') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Scenario file not found: {path}")
+    except json.JSONDecodeError as e:
+        raise json.JSONDecodeError("Invalid JSON in scenario file", e.doc, e.pos)
+    
+    # Validate road_rules
+    if 'road_rules' not in data:
+        raise ValueError("scenario missing 'road_rules'")
+    
+    road_rules = data['road_rules']
+    required_rules = ['max_speed', 'min_follow_distance', 'stop_sign_wait']
+    
+    for rule in required_rules:
+        if rule not in road_rules:
+            raise ValueError(f"road_rules missing key: {rule}")
+    
+    # Ensure speed_zones exists and is a list
+    data.setdefault('speed_zones', [])
+    
+    return data
 
 
 def parse_time(ts: str) -> float:
