@@ -89,29 +89,75 @@ def parse_time(ts: str) -> float:
 
 def read_log(path: Path) -> Iterator[Tuple[float, str, str]]:
     """
-    Parse a plaintext event log.
+    Read a log file and yield (time_sec, event_type, event_arg) tuples.
 
-    Each non-empty line begins with a timestamp, then an event kind, optionally an argument.
-    Allowed kinds and formats:
-      - SPEED <float>
-      - FOLLOW_DISTANCE <float>
-      - LANE_CHANGE <LEFT|RIGHT>
-      - STOP_SIGN_DETECTED        (no argument)
+    Each line in the log file has the format:
+      TIMESTAMP EVENT_TYPE [ARGUMENT]
+
+    Where:
+      - TIMESTAMP is in MM:SS.s format (see parse_time).
+      - EVENT_TYPE is one of: SPEED, FOLLOW_DISTANCE, LANE_CHANGE, STOP_SIGN_DETECTED.
+      - ARGUMENT is optional and depends on the event type:
+          * SPEED <float>           # speed in mph
+          * FOLLOW_DISTANCE <float>  # distance in meters
+          * LANE_CHANGE <direction>  # 'LEFT' or 'RIGHT'
+          * STOP_SIGN_DETECTED       # no argument
 
     Yields:
-      (time_seconds: float, kind: str, arg: str)
-
-    TODO(student):
-      1) Open file and iterate lines; skip blank lines.
-      2) Split into tokens; require at least [time, kind].
-      3) Use parse_time() for the timestamp.
-      4) Validate per-kind arity and argument value(s):
-         * SPEED, FOLLOW_DISTANCE -> exactly 3 tokens; numeric third token.
-         * LANE_CHANGE -> exactly 3 tokens; third token in {'LEFT','RIGHT'}.
-         * STOP_SIGN_DETECTED -> exactly 2 tokens.
-         * else -> raise ValueError(f"unknown kind: {kind}")
-      5) On any malformed line, raise ValueError with a helpful message,
-         e.g., ValueError(f"bad SPEED: {line!r}") or ValueError(f"bad line: {line!r}").
-      6) Yield (t, kind, arg) where arg is '' when there is no argument.
+      (time_sec: float, event_type: str, event_arg: str)
+      - time_sec: parsed timestamp in seconds (float)
+      - event_type: one of the EVENT_TYPE strings
+      - event_arg: the rest of the line after EVENT_TYPE
+      
+    Raises:
+        FileNotFoundError: If the log file doesn't exist
+        ValueError: For malformed log lines
     """
-    raise NotImplementedError("TODO: implement read_log()")
+    valid_events = {'SPEED', 'FOLLOW_DISTANCE', 'LANE_CHANGE', 'STOP_SIGN_DETECTED'}
+    
+    try:
+        with open(path, 'r') as f:
+            for line_num, line in enumerate(f, 1):
+                # Skip empty lines and comments
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                
+                try:
+                    # Split into parts
+                    parts = line.split()
+                    if len(parts) < 2:
+                        raise ValueError(f"Line {line_num}: Invalid format")
+                    
+                    # Parse timestamp and event type
+                    timestamp = parse_time(parts[0])
+                    event_type = parts[1]
+                    
+                    # Validate event type
+                    if event_type not in valid_events:
+                        raise ValueError(f"Line {line_num}: Unknown event type: {event_type}")
+                    
+                    # Handle event arguments
+                    event_arg = ''
+                    if event_type in ('SPEED', 'FOLLOW_DISTANCE'):
+                        if len(parts) != 3:
+                            raise ValueError(f"Line {line_num}: {event_type} requires a numeric argument")
+                        try:
+                            float(parts[2])  # Validate it's a number
+                        except ValueError:
+                            raise ValueError(f"Line {line_num}: Invalid numeric value: {parts[2]}")
+                        event_arg = parts[2]
+                    elif event_type == 'LANE_CHANGE':
+                        if len(parts) != 3 or parts[2] not in ('LEFT', 'RIGHT'):
+                            raise ValueError(f"Line {line_num}: LANE_CHANGE requires 'LEFT' or 'RIGHT'")
+                        event_arg = parts[2]
+                    elif event_type == 'STOP_SIGN_DETECTED' and len(parts) != 2:
+                        raise ValueError(f"Line {line_num}: STOP_SIGN_DETECTED takes no arguments")
+                    
+                    yield (timestamp, event_type, event_arg)
+                    
+                except ValueError as e:
+                    raise ValueError(f"Error in log file '{path}', line {line_num}: {str(e)}")
+                    
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Log file not found: {path}")
