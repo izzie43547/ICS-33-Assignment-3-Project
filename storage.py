@@ -324,19 +324,53 @@ def get_violations_by_type(scenario_id: int, vtype: str) -> List[Dict[str, Any]]
 
 def get_recent_violations(limit: int = 20) -> List[Dict[str, Any]]:
     """
-    Return the most recent `limit` violations across all scenarios (newest first).
+    Return the most recent violations across all scenarios.
 
-    SQL:
-      SELECT scenario_id, tstamp, type, details
-      FROM violation
-      ORDER BY violation_id DESC
-      LIMIT ?
-
-    Output shape per row:
-      {"scenario_id": <int>, "time": <str>, "type": <str>, "details": <str>}
-
-    TODO(student):
-      1) Execute the SELECT with LIMIT ?.
-      2) Convert rows to dicts with keys shown above.
+    Args:
+        limit: Maximum number of violations to return (default: 20)
+        
+    Returns:
+        List of violation dictionaries, each with:
+        - 'scenario_id': ID of the scenario (int)
+        - 'scenario_name': Name of the scenario (str)
+        - 'time': Timestamp in 'MM:SS.s' format (str)
+        - 'type': Type of violation (str)
+        - 'details': Description of the violation (str)
+        
+    Raises:
+        ValueError: If limit is not a positive integer
+        sqlite3.Error: If there's a database error
     """
-    raise NotImplementedError("TODO: implement get_recent_violations()")
+    if not isinstance(limit, int) or limit <= 0:
+        raise ValueError("Limit must be a positive integer")
+    
+    conn = _conn()
+    
+    # Get recent violations with scenario information
+    cursor = conn.execute(
+        """
+        SELECT 
+            v.scenario_id, 
+            s.name as scenario_name, 
+            v.tstamp, 
+            v.type, 
+            v.details
+        FROM violation v
+        JOIN scenario s ON v.scenario_id = s.scenario_id
+        ORDER BY v.created_at DESC, v.violation_id DESC
+        LIMIT ?
+        """,
+        (limit,)
+    )
+    
+    # Convert to list of dictionaries with the required structure
+    return [
+        {
+            'scenario_id': row['scenario_id'],
+            'scenario_name': row['scenario_name'],
+            'time': row['tstamp'],
+            'type': row['type'],
+            'details': row['details']
+        }
+        for row in cursor
+    ]
