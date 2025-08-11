@@ -46,21 +46,14 @@ def detect_violations(scenario: Dict[str, Any], events: Iterable[Event]) -> List
     Ordering:
       - Sort the final list by the human-formatted "time" string.
 
-    TODO(student):
-      1) Extract and float() max_speed, min_follow_distance, stop_sign_wait.
-      2) Iterate events in order; track:
-         * last_follow (float|None),
-         * stop_detect_time (float|None),
-         * optionally last_speed (float).
-      3) For SPEED:
-           - check SPEEDING,
-           - if stop_detect_time is not None and speed > 1.0 and t > stop_detect_time:
-               compute waited = t - stop_detect_time;
-               if waited < stop_wait -> add ROLLING_STOP;
-               then clear stop_detect_time.
-      4) For FOLLOW_DISTANCE: update last_follow; check TAILGATING.
-      5) For LANE_CHANGE: if last_follow is set and < min_follow -> UNSAFE_LANE_CHANGE.
-      6) When adding a violation, format time via _fmt_time(t).
+    Returns:
+        List of violation dictionaries, each with keys:
+        - 'type': The type of violation (str)
+        - 'time': Formatted timestamp (str)
+        - 'details': Description of the violation (str)
+        
+    Raises:
+        ValueError: If scenario is missing required road rules
       7) Sort by v["time"] and return.
 
     """
