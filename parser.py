@@ -59,13 +59,32 @@ def parse_time(ts: str) -> float:
       '0:05'   -> 5.0
       '1:02.5' -> 62.5
 
-    TODO(student):
-      1) Split minutes/seconds by ':'.
-      2) Convert minutes to int, seconds to float.
-      3) Return total seconds as minutes*60 + seconds.
-      4) Raise ValueError for malformed inputs.
+    Args:
+        ts: Timestamp string in format 'M:SS' or 'M:SS.s'
+        
+    Returns:
+        float: Total seconds
+        
+    Raises:
+        ValueError: If the timestamp format is invalid
     """
-    raise NotImplementedError("TODO: implement parse_time()")
+    try:
+        # Split into minutes and seconds parts
+        parts = ts.split(':')
+        if len(parts) != 2:
+            raise ValueError(f"Invalid time format: {ts}")
+            
+        minutes = int(parts[0])
+        seconds = float(parts[1])
+        
+        # Validate ranges
+        if minutes < 0 or seconds < 0 or seconds >= 60:
+            raise ValueError(f"Time values out of range: {ts}")
+            
+        return minutes * 60 + seconds
+        
+    except (ValueError, IndexError) as e:
+        raise ValueError(f"Invalid time format: {ts}") from e
 
 
 def read_log(path: Path) -> Iterator[Tuple[float, str, str]]:
