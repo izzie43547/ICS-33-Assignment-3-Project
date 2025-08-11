@@ -271,22 +271,55 @@ def get_violation_counts(scenario_id: int) -> Dict[str, int]:
 
 def get_violations_by_type(scenario_id: int, vtype: str) -> List[Dict[str, Any]]:
     """
-    Return violations of a given type for a scenario, ordered by timestamp.
+    Return all violations of a specific type for a given scenario.
 
-    SQL:
-      SELECT tstamp, type, details
-      FROM violation
-      WHERE scenario_id=? AND type=?
-      ORDER BY tstamp
-
-    Output shape per row:
-      {"time": <str>, "type": <str>, "details": <str>}
-
-    TODO(student):
-      1) Execute the SELECT and fetch all.
-      2) Convert rows to dicts with keys 'time', 'type', 'details'.
+    Args:
+        scenario_id: ID of the scenario to get violations for
+        vtype: Type of violation to filter by (e.g., 'SPEEDING', 'TAILGATING')
+        
+    Returns:
+        List of violation dictionaries, each with:
+        - 'time': Timestamp in 'MM:SS.s' format (str)
+        - 'type': Type of violation (str)
+        - 'details': Description of the violation (str)
+        
+    Raises:
+        ValueError: If scenario_id is invalid or vtype is empty
+        sqlite3.Error: If there's a database error
     """
-    raise NotImplementedError("TODO: implement get_violations_by_type()")
+    if not vtype:
+        raise ValueError("Violation type cannot be empty")
+    
+    conn = _conn()
+    
+    # Verify the scenario exists
+    cursor = conn.execute(
+        "SELECT 1 FROM scenario WHERE scenario_id = ?",
+        (scenario_id,)
+    )
+    if not cursor.fetchone():
+        raise ValueError(f"Scenario with ID {scenario_id} does not exist")
+    
+    # Get violations of the specified type
+    cursor = conn.execute(
+        """
+        SELECT tstamp, details
+        FROM violation
+        WHERE scenario_id = ? AND type = ?
+        ORDER BY tstamp
+        """,
+        (scenario_id, vtype)
+    )
+    
+    # Convert to list of dictionaries with the required structure
+    return [
+        {
+            'time': row['tstamp'],
+            'type': vtype,
+            'details': row['details']
+        }
+        for row in cursor
+    ]
 
 
 def get_recent_violations(limit: int = 20) -> List[Dict[str, Any]]:
