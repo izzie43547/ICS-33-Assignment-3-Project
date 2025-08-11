@@ -54,15 +54,60 @@ def upsert_ruleset(rules: Dict[str, Any]) -> int:
     Return the existing ruleset.rule_id if a row with identical values exists,
     otherwise insert a new row and return its rule_id.
 
-    Schema fields used in `ruleset`:
-      (max_speed, min_follow_distance, stop_sign_wait)
-
-    TODO(student):
-      1) SELECT rule_id ... WHERE max_speed=? AND min_follow_distance=? AND stop_sign_wait=?.
-      2) If found, return the id.
-      3) Else INSERT and commit, then return lastrowid.
+    Args:
+        rules: Dictionary containing road rules with keys:
+               - 'max_speed': Maximum allowed speed (float)
+               - 'min_follow_distance': Minimum following distance (float)
+               - 'stop_sign_wait': Required stop time at stop signs (float)
+               
+    Returns:
+        int: The rule_id of the existing or newly created ruleset
+        
+    Raises:
+        ValueError: If required keys are missing from the rules dictionary
+        sqlite3.Error: If there's a database error
     """
-    raise NotImplementedError("TODO: implement upsert_ruleset()")
+    required_keys = {'max_speed', 'min_follow_distance', 'stop_sign_wait'}
+    missing_keys = required_keys - rules.keys()
+    if missing_keys:
+        raise ValueError(f"Missing required rule keys: {', '.join(missing_keys)}")
+    
+    # Extract values with type conversion
+    try:
+        max_speed = float(rules['max_speed'])
+        min_follow = float(rules['min_follow_distance'])
+        stop_wait = float(rules['stop_sign_wait'])
+    except (TypeError, ValueError) as e:
+        raise ValueError(f"Invalid rule value: {e}")
+    
+    conn = _conn()
+    
+    # Check if an identical ruleset exists
+    cursor = conn.execute(
+        """
+        SELECT rule_id FROM ruleset 
+        WHERE abs(max_speed - ?) < 1e-9 
+          AND abs(min_follow_distance - ?) < 1e-9 
+          AND abs(stop_sign_wait - ?) < 1e-9
+        """,
+        (max_speed, min_follow, stop_wait)
+    )
+    
+    existing = cursor.fetchone()
+    if existing:
+        return existing['rule_id']
+    
+    # Insert new ruleset
+    cursor = conn.execute(
+        """
+        INSERT INTO ruleset (max_speed, min_follow_distance, stop_sign_wait)
+        VALUES (?, ?, ?)
+        """,
+        (max_speed, min_follow, stop_wait)
+    )
+    conn.commit()
+    
+    return cursor.lastrowid
 
 
 def register_scenario(
