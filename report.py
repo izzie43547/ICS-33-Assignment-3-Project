@@ -1,21 +1,34 @@
 from __future__ import annotations
-from typing import Dict, List
+from typing import Dict, List, Any
 
-def make_report(scenario: Dict, violations: List[Dict[str, str]]) -> Dict:
+def make_report(scenario: Dict[str, Any], violations: List[Dict[str, str]]) -> Dict[str, Any]:
     """
     Build a report dict from a scenario and a list of violation records.
 
-    Expected output shape:
-      {
-        "scenario": <str>,              # scenario name or "Unnamed" fallback
-        "violations": <list[dict]>,     # as provided
-        "total_violations": <int>       # len(violations)
-      }
-
-    TODO(student):
-      1) Read the scenario name via scenario.get('name'); fall back to "Unnamed" if falsy.
-      2) Include the provided violations list unchanged under key "violations".
-      3) Compute "total_violations" as len(violations).
-      4) Return the assembled dict.
+    Args:
+        scenario: Dictionary containing scenario information, including 'name'
+        violations: List of violation dictionaries, each with 'type', 'time', and 'details'
+        
+    Returns:
+        A dictionary with the following structure:
+        {
+            "scenario": str,               # Scenario name or "Unnamed" if not provided
+            "violations": List[Dict],      # The input violations list
+            "total_violations": int        # Number of violations
+        }
+        
+    Example:
+        >>> scenario = {"name": "Test Scenario"}
+        >>> violations = [{"type": "SPEEDING", "time": "00:01.0", "details": "45 mph in 35 mph zone"}]
+        >>> make_report(scenario, violations)
+        {
+            'scenario': 'Test Scenario',
+            'violations': [{'type': 'SPEEDING', 'time': '00:01.0', 'details': '45 mph in 35 mph zone'}],
+            'total_violations': 1
+        }
     """
-    raise NotImplementedError("TODO: implement make_report()")
+    return {
+        "scenario": scenario.get('name', 'Unnamed'),
+        "violations": violations,
+        "total_violations": len(violations)
+    }
