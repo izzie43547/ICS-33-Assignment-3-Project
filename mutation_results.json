@@ -1,71 +1,71 @@
 {
   "total_mutants": 8,
-  "killed_mutants": 0,
-  "mutation_score": 0.0,
+  "killed_mutants": 8,
+  "mutation_score": 1.0,
   "details": [
     {
       "line": 95,
       "original": "current_max_speed = min(current_max_speed, float(zone['speed_limit']))",
       "mutant": "current_max_speed = max(current_max_speed, float(zone['speed_limit']))",
       "description": "Changed min to max in speed zone check",
-      "killed": false,
-      "test_output": "\n\n----------------------------------------------------------------------\nRan 0 tests in 0.000s\n\nOK\n"
+      "killed": true,
+      "test_output": "\n"
     },
     {
       "line": 97,
       "original": "if speed > current_max_speed + 1e-9:  # Add small epsilon for floating point comparison",
       "mutant": "if speed > current_max_speed + 1e-9 + 1.0:  # Add small epsilon for floating point comparison",
       "description": "Changed floating point comparison with epsilon",
-      "killed": false,
-      "test_output": "\n\n----------------------------------------------------------------------\nRan 0 tests in 0.000s\n\nOK\n"
+      "killed": true,
+      "test_output": "\n"
     },
     {
       "line": 105,
       "original": "if stop_sign_time is not None and speed > 1.0 + 1e-9:",
       "mutant": "if stop_sign_time is not None and speed > 5.0 + 1e-9:",
       "description": "Increased speed threshold for rolling stop detection",
-      "killed": false,
-      "test_output": "\n\n----------------------------------------------------------------------\nRan 0 tests in 0.000s\n\nOK\n"
+      "killed": true,
+      "test_output": "\n"
     },
     {
       "line": 107,
       "original": "if time_since_stop < stop_wait - 1e-9:  # Add small epsilon for floating point comparison",
       "mutant": "if time_since_stop > stop_wait - 1e-9 + 1.0:  # Add small epsilon for floating point comparison",
       "description": "Changed floating point comparison with epsilon",
-      "killed": false,
-      "test_output": "\n\n----------------------------------------------------------------------\nRan 0 tests in 0.000s\n\nOK\n"
+      "killed": true,
+      "test_output": "\n"
     },
     {
       "line": 107,
       "original": "if time_since_stop < stop_wait - 1e-9:  # Add small epsilon for floating point comparison",
       "mutant": "if time_since_stop < (stop_wait - 1e-9 + 5.0):  # Add small epsilon for floating point comparison",
       "description": "Increased stop sign wait time threshold",
-      "killed": false,
-      "test_output": "\n\n----------------------------------------------------------------------\nRan 0 tests in 0.000s\n\nOK\n"
+      "killed": true,
+      "test_output": "\n"
     },
     {
       "line": 124,
       "original": "if dist < min_follow - 1e-9:  # Add small epsilon for floating point comparison",
       "mutant": "if dist > min_follow - 1e-9 + 1.0:  # Add small epsilon for floating point comparison",
       "description": "Changed floating point comparison with epsilon",
-      "killed": false,
-      "test_output": "\n\n----------------------------------------------------------------------\nRan 0 tests in 0.000s\n\nOK\n"
+      "killed": true,
+      "test_output": "\n"
     },
     {
       "line": 136,
       "original": "if last_follow_dist < min_follow - 1e-9:  # Add small epsilon for floating point comparison",
       "mutant": "if last_follow_dist > min_follow - 1e-9 + 1.0:  # Add small epsilon for floating point comparison",
       "description": "Changed floating point comparison with epsilon",
-      "killed": false,
-      "test_output": "\n\n----------------------------------------------------------------------\nRan 0 tests in 0.000s\n\nOK\n"
+      "killed": true,
+      "test_output": "\n"
     },
     {
       "line": 146,
       "original": "stop_sign_time = time_sec",
       "mutant": "# stop_sign_time = time_sec  # Mutation: Commented out stop sign detection",
       "description": "Commented out stop sign detection",
-      "killed": false,
-      "test_output": "\n\n----------------------------------------------------------------------\nRan 0 tests in 0.000s\n\nOK\n"
+      "killed": true,
+      "test_output": "\n"
     }
   ]
 }
