@@ -1,0 +1,16 @@
+{
+  "total_mutants": 1,
+  "killed_mutants": 0,
+  "mutation_score": 0.0,
+  "details": [
+    {
+      "mutant_file": "mutants\\mutant_97_-212019492920672614.py",
+      "killed": false,
+      "output": "\n\n----------------------------------------------------------------------\nRan 0 tests in 0.000s\n\nOK\n",
+      "line": 97,
+      "original": "if speed > current_max_speed + 1e-9:",
+      "mutant": "if speed > current_max_speed + 1.0:",
+      "description": "Changed speed comparison threshold"
+    }
+  ]
+}
