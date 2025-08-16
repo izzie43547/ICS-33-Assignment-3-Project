@@ -8,8 +8,9 @@ MUTANTS = sorted((ROOT / "mutants").glob("rules_*.py"))
 RESULTS = {"total_mutants": 0, "killed": 0, "survived": 0, "killed_ids": [], "survived_ids": []}
 
 def run_tests():
-    return subprocess.run([sys.executable, "-m", "unittest", "discover", "tests_student", "-v"],
-                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=45)
+    # Use pytest to run the tests
+    return subprocess.run([sys.executable, "-m", "pytest", "tests_student/test_rules.py", "-v"],
+                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=45)
 
 def main():
     orig = ROOT / "rules.py"
