@@ -112,15 +112,19 @@ def upsert_ruleset(rules: Dict[str, Any]) -> int:
 
 def register_scenario(
     name: str,
+    description: str,
+    source_file: str,
+    rule_id: int,
+    speed_zones: Optional[List[Dict[str, float]]] = None
 ) -> int:
     """
     Insert a new scenario and its speed zones, returning scenario.scenario_id.
 
     Args:
         name: Name of the scenario
+        description: Description of the scenario
         source_file: Path to the source file for this scenario
         rule_id: ID of the ruleset to associate with this scenario
-        description: Optional description of the scenario (default: "")
         speed_zones: Optional list of speed zone dictionaries, each with:
                     - 'start_mile': Starting mile marker (float)
                     - 'end_mile': Ending mile marker (float)
