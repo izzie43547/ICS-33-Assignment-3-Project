@@ -1,9 +1,8 @@
 {
   "total_mutants": 8,
-  "killed": 0,
-  "survived": 8,
-  "killed_ids": [],
-  "survived_ids": [
+  "killed": 8,
+  "survived": 0,
+  "killed_ids": [
     "rules_dist_le",
     "rules_lane_change_dist_plus_1",
     "rules_no_stop_sign",
@@ -12,5 +11,6 @@
     "rules_speed_zone_max",
     "rules_stop_speed_2",
     "rules_stop_wait_plus_1"
-  ]
+  ],
+  "survived_ids": []
 }
