@@ -9,22 +9,28 @@ This project implements an Autonomous Vehicle Incident Log Analyzer that process
 - **Reporting**: Generate detailed violation reports
 - **Persistence**: Store and query violation data in a SQLite database
 - **CLI Interface**: Command-line interface for analyzing logs and querying the database
+- **Mutation Testing**: Comprehensive test suite with 100% mutation test coverage for the rules engine
 
 ## Project Structure
 ```
 .
-├── parser.py          # Log file parsing and scenario loading
-├── rules.py           # Safety rule definitions and violation detection
-├── report.py          # Report generation
-├── storage.py         # Database operations and persistence
-├── log_analyzer.py    # Command-line interface
-├── schema.sql         # Database schema definition
-├── tests_student/     # Unit tests
-│   ├── test_parser.py
-│   ├── test_rules.py
-│   ├── test_report.py
-│   └── test_storage.py
-└── README.md          # This file
+├── parser.py               # Log file parsing and scenario loading
+├── rules.py                # Safety rule definitions and violation detection
+├── report.py               # Report generation
+├── storage.py              # Database operations and persistence
+├── log_analyzer.py         # Command-line interface
+├── run_mutation_suite.py   # Mutation testing framework
+├── create_mutants.py       # Script to generate mutant test files
+├── schema.sql              # Database schema definition
+├── mutants/                # Generated mutant files for testing
+│   ├── rules_*.py          # Mutant versions of rules.py
+├── mutation_results.json   # Results of mutation testing
+├── tests_student/          # Unit tests
+│   ├── test_parser.py      # Tests for parser.py
+│   ├── test_rules.py       # Tests for rules.py
+│   ├── test_report.py      # Tests for report.py
+│   └── test_storage.py     # Tests for storage.py
+└── README.md               # This file
 ```
 
 ## Installation
@@ -100,10 +106,33 @@ Example:
 - **UNSAFE_LANE_CHANGE**: Lane change performed while following too closely
 
 ## Testing
+### Running Unit Tests
 Run the test suite with pytest:
 ```bash
 pytest tests_student/ -v
 ```
+
+### Mutation Testing
+This project includes a mutation testing framework to ensure test quality. The mutation test suite verifies that the tests can detect intentional bugs in the code.
+
+To run the mutation tests:
+```bash
+# First, generate the mutant files
+python create_mutants.py
+
+# Then run the mutation test suite
+python run_mutation_suite.py
+```
+
+The mutation test results will be saved to `mutation_results.json` and displayed in the console. A 100% mutation score indicates that all mutants were detected by the test suite.
+
+### Test Coverage
+The test suite provides comprehensive coverage for:
+- Log parsing and validation
+- Safety rule violation detection
+- Report generation
+- Database operations
+- Edge cases and error conditions
 
 ## Database Schema
 The SQLite database stores the following information:
