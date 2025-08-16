@@ -83,7 +83,7 @@ def create_mutations(original_file: str) -> List[Dict[str, Any]]:
         # Pattern 4: Change speed threshold for rolling stop
         {
             'pattern': r'(\s*if\s+stop_sign_time\s+is\s+not\s+None\s+and\s+speed\s*>\s*)(1\.0\s*\+\s*1e-9\b)',
-            'replacement': r'\15.0 + 1e-9',
+            'replacement': r'\g<1>5.0 + 1e-9',
             'description': 'Increased speed threshold for rolling stop detection'
         },
         # Pattern 5: Change stop sign wait time check
